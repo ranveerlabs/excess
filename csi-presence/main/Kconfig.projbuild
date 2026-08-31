@@ -1,0 +1,11 @@
+menu "csi presence"
+
+config ESP_WIFI_SSID
+    string "ssid"
+    default "myssid"
+
+config ESP_WIFI_PASSWORD
+    string "password"
+    default "mypassword"
+
+endmenu
