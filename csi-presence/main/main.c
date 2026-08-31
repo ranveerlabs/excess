@@ -12,8 +12,14 @@ void app_main(void)
     gpio_set_direction(LED, GPIO_MODE_OUTPUT);
     csi_rx_start();
 
+    int last = -1;
     while (1) {
-        gpio_set_level(LED, motion_state());
+        int p = motion_state();
+        gpio_set_level(LED, p);
+        if (p != last) {
+            printf("S,%d,%.2f\n", p, motion_score());
+            last = p;
+        }
         vTaskDelay(pdMS_TO_TICKS(100));
     }
 }
