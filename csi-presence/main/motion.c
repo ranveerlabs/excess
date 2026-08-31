@@ -83,6 +83,14 @@ void motion_feed(const csi_frame_t *f)
             ESP_LOGI(T, "out");
         }
     }
+
+    // creep the baseline when nobodys there. a door left open or the
+    // heating coming on both walk the amplitudes and it never comes back
+    // otherwise
+    if (!present) {
+        for (int i = CSI_LO; i < CSI_HI; i++)
+            base[i] = base[i] * 0.999f + f->amp[i] * 0.001f;
+    }
 }
 
 int motion_state(void) { return present; }
