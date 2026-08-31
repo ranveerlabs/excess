@@ -12,6 +12,7 @@
 #include "nvs_flash.h"
 #include "lwip/sockets.h"
 #include "csi_rx.h"
+#include "motion.h"
 
 
 #define SSID  CONFIG_ESP_WIFI_SSID
@@ -46,6 +47,8 @@ static void on_csi(void *ctx, wifi_csi_info_t *info)
     fr.rssi = info->rx_ctrl.rssi;
     fr.t_ms = xTaskGetTickCount() * portTICK_PERIOD_MS;
     nframes++;
+
+    motion_feed(&fr);
 
 
 
