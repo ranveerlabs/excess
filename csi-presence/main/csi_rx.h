@@ -1,7 +1,6 @@
 #pragma once
 #include <stdint.h>
 
-// 64 subcarriers for HT20, only the middle ones carry anything
 #define CSI_SUBC      64
 #define CSI_LO        6
 #define CSI_HI        58

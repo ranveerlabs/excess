@@ -59,7 +59,7 @@ cv.addEventListener('pointerdown', (e) => {
 addEventListener('pointerup', () => { key = 0 })
 
 function machine(src) {
-  const jump = new Int32Array(src.length).fill(-1)
+  const jump = new Int32Array(src.length)
   const st = []
   for (let i = 0; i < src.length; i++) {
     if (src[i] === '[') st.push(i)

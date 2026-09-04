@@ -1,13 +1,12 @@
+# python plot_csi.py cap.csv
 import sys
 import numpy as np
 import matplotlib.pyplot as plt
 
-# cols: R, t_ms, rssi, then 52 amplitudes
 d = np.genfromtxt(sys.argv[1], delimiter=',', usecols=range(1, 55), invalid_raise=False)
 t = (d[:, 0] - d[0, 0]) / 1000.0
 amp = d[:, 2:]
 
-# the ring in motion.c but offline so i can move the window without reflashing
 W = 32
 base = amp[:60].mean(axis=0)
 dist = np.abs(amp - base).sum(axis=1) / base.sum() * 100
@@ -28,6 +27,5 @@ ax[2].set_xlabel('s')
 plt.tight_layout()
 plt.show()
 
-# fft of dist to see if breathing shows up. it did not, or i was sat too far
 # f = np.fft.rfft(dist - dist.mean())
 # plt.plot(np.fft.rfftfreq(len(dist), 1/70.0), abs(f)); plt.xlim(0, 2); plt.show()

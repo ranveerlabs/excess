@@ -1,9 +1,8 @@
-// pmw3360 over spi. mode 3, msb first, 2mhz is fine 8 is not
 #include <stdio.h>
 #include "pico/stdlib.h"
 #include "hardware/spi.h"
 #include "pmw3360.h"
-#include "srom_0x04.h"   // pixarts blob, not mine to commit. grab it from any qmk tree
+#include "srom_0x04.h"
 
 #define SCK  2
 #define MOSI 3
@@ -30,9 +29,9 @@ static void wr(uint8_t r, uint8_t v)
     uint8_t b[2] = { r | 0x80, v };
     cs_lo();
     spi_write_blocking(spi0, b, 2);
-    busy_wait_us(35);      // tSCLK-NCS for write
+    busy_wait_us(35);
     cs_hi();
-    busy_wait_us(180);     // tSWW. shorter and writes start dropping
+    busy_wait_us(180);
 }
 
 static uint8_t rd(uint8_t r)
@@ -40,7 +39,7 @@ static uint8_t rd(uint8_t r)
     uint8_t a = r & 0x7f, v = 0;
     cs_lo();
     spi_write_blocking(spi0, &a, 1);
-    busy_wait_us(160);     // tSRAD
+    busy_wait_us(160);
     spi_read_blocking(spi0, 0, &v, 1);
     busy_wait_us(1);
     cs_hi();
@@ -55,7 +54,6 @@ static void srom_load(void)
     sleep_ms(10);
     wr(REG_SROM_EN, 0x18);
 
-    // this one is bit banged out in one long cs low, cant use wr()
     uint8_t a = REG_SROM_EN | 0x80;
     cs_lo();
     spi_write_blocking(spi0, &a, 1);
@@ -71,8 +69,6 @@ static void srom_load(void)
     rd(REG_SROM_ID);
     wr(REG_CFG2, 0x00);
 }
-
-uint8_t pmw_id(void) { return rd(REG_PID); }
 
 bool pmw_init(void)
 {
@@ -92,7 +88,6 @@ bool pmw_init(void)
     wr(REG_PWRUP, 0x5a);
     sleep_ms(50);
 
-    // dump the motion regs once or it wont start reporting
     for (int i = 0x02; i <= 0x06; i++) rd(i);
 
     srom_load();
@@ -104,7 +99,6 @@ bool pmw_init(void)
 
 void pmw_set_cpi(uint16_t cpi)
 {
-    // 100 steps. 0 is 100cpi
     uint8_t v = (cpi / 100) - 1;
     wr(REG_CPI, v);
 }
@@ -123,5 +117,4 @@ void pmw_burst(int16_t *dx, int16_t *dy)
 
     *dx = (int16_t)((b[3] << 8) | b[2]);
     *dy = (int16_t)((b[5] << 8) | b[4]);
-    // b[0] motion, b[1] observation, squal is b[6] if you read 7
 }

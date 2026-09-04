@@ -1,8 +1,5 @@
 #include "tusb.h"
 
-// plain 5 button + wheel boot mouse. nothing clever, no 8k report rate,
-// the 3360 doesnt keep up anyway
-
 #define USB_VID 0xcafe
 #define USB_PID 0x4004
 

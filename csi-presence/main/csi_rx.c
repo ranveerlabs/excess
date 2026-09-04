@@ -1,6 +1,3 @@
-// csi capture. connects as sta, spams udp at the gateway so theres
-// something coming back to measure
-
 #include <string.h>
 #include <math.h>
 #include "freertos/FreeRTOS.h"
@@ -21,7 +18,7 @@
 static const char *T = "csi";
 static csi_frame_t fr;
 static uint32_t nframes;
-static int print_raw = 0;      // flip for the python capture
+static int print_raw = 0;
 
 static esp_netif_t *nif;
 
@@ -29,7 +26,7 @@ static void on_csi(void *ctx, wifi_csi_info_t *info)
 {
     if (!info || !info->buf) return;
 
-    // buf is imag,real per subcarrier. imag FIRST. cost me an evening
+    // info->buf is imag,real per subcarrier. imag first, not real first
     const int8_t *b = info->buf;
     int n = info->len / 2;
     if (n > CSI_SUBC) n = CSI_SUBC;
@@ -39,7 +36,6 @@ static void on_csi(void *ctx, wifi_csi_info_t *info)
         float re = b[i*2 + 1];
         fr.amp[i] = sqrtf(re*re + im*im);
     }
-    // dead subcarriers, dc and the guards. leaving them in drags the variance
     for (int i = 0; i < CSI_LO; i++) fr.amp[i] = 0;
     for (int i = CSI_HI; i < CSI_SUBC; i++) fr.amp[i] = 0;
     fr.amp[32] = 0;
@@ -53,22 +49,19 @@ static void on_csi(void *ctx, wifi_csi_info_t *info)
 
 
     if (print_raw) {
-        // csv straight out the uart, tools/cap.py eats this
         printf("R,%lu,%d", (unsigned long)fr.t_ms, fr.rssi);
         for (int i = CSI_LO; i < CSI_HI; i++) printf(",%.1f", fr.amp[i]);
         printf("\n");
     }
 }
 
-// keeps traffic flowing. without this you only get beacons at 10hz and
-// everything below is useless
 static void pinger(void *arg)
 {
     esp_netif_ip_info_t ip;
     int s = socket(AF_INET, SOCK_DGRAM, 0);
     struct sockaddr_in dst = {0};
     dst.sin_family = AF_INET;
-    dst.sin_port = htons(9);   // discard
+    dst.sin_port = htons(9);
 
     while (1) {
         if (esp_netif_get_ip_info(nif, &ip) == ESP_OK && ip.gw.addr) {
@@ -76,7 +69,7 @@ static void pinger(void *arg)
             char c = 0;
             sendto(s, &c, 1, 0, (struct sockaddr *)&dst, sizeof(dst));
         }
-        vTaskDelay(pdMS_TO_TICKS(10));   // ~100hz, ends up more like 70
+        vTaskDelay(pdMS_TO_TICKS(10));
     }
 }
 
@@ -111,7 +104,6 @@ void csi_rx_start(void)
     ESP_ERROR_CHECK(esp_wifi_set_mode(WIFI_MODE_STA));
     ESP_ERROR_CHECK(esp_wifi_set_config(WIFI_IF_STA, &wc));
 
-    // no power save or the radio sleeps and the whole thing goes deaf
     ESP_ERROR_CHECK(esp_wifi_set_ps(WIFI_PS_NONE));
 
     wifi_csi_config_t cc = {
@@ -123,8 +115,6 @@ void csi_rx_start(void)
         .manu_scale = false,
         .shift = 0,
     };
-    // manu_scale true + shift 6 was steadier but the amplitudes stop
-    // meaning anything across frames, left it off
     ESP_ERROR_CHECK(esp_wifi_set_csi_config(&cc));
     ESP_ERROR_CHECK(esp_wifi_set_csi_rx_cb(on_csi, NULL));
     ESP_ERROR_CHECK(esp_wifi_set_csi(true));

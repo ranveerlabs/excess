@@ -5,7 +5,7 @@
 #include "csi_rx.h"
 #include "motion.h"
 
-#define LED 48      // s3 devkit rgb, im only using it as a plain gpio
+#define LED 48
 
 void app_main(void)
 {

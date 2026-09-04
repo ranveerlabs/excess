@@ -1,4 +1,4 @@
-# dumps the R, lines to a csv. set print_raw in csi_rx.c first or you get nothing
+# python cap.py COM5 out.csv
 import sys, serial, time
 
 port = sys.argv[1] if len(sys.argv) > 1 else 'COM5'
@@ -11,7 +11,7 @@ try:
     while True:
         l = s.readline().decode('utf8', 'ignore').strip()
         if not l.startswith('R,'):
-            if l: print(l)      # log lines, let them thru
+            if l: print(l)
             continue
         f.write(l + '\n')
         n += 1

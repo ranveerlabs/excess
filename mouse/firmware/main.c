@@ -4,7 +4,6 @@
 #include "tusb.h"
 #include "pmw3360.h"
 
-// buttons straight on gpio, no matrix, theres 5 of them
 #define BTN_L  7
 #define BTN_R  8
 #define BTN_M  9
@@ -15,7 +14,6 @@ static const uint8_t btn_pin[5] = { BTN_L, BTN_R, BTN_M, BTN_4, BTN_5 };
 static uint8_t stable, raw_last;
 static uint32_t last_change;
 
-// omrons bounce for ~4ms cold, more when theyre worn. 8 is safe
 #define DEBOUNCE_MS 8
 
 static uint8_t read_btns(void)
@@ -44,8 +42,6 @@ int main(void)
     sleep_ms(500);
     if (!pmw_init()) {
         printf("pmw:bad\n");
-        // used to hang here. it boots half the time on a cold plug and
-        // a dead sensor is still a working set of buttons
     }
     pmw_set_cpi(1600);
 
@@ -63,14 +59,12 @@ int main(void)
 
         uint8_t b = read_btns();
 
-        // clamp to the 8 bit report. anything faster than this and youre
-        // throwing the mouse
         int8_t sx = ax >  127 ? 127 : (ax < -127 ? -127 : ax);
         int8_t sy = ay >  127 ? 127 : (ay < -127 ? -127 : ay);
         ax -= sx;
         ay -= sy;
 
-        // sensor is rotated 90 in the shell, x and y swap. dont "fix" this
+        // sensor is rotated 90 in the shell, sy and sx are the right way round
         if (sx || sy || b != 0) tud_hid_mouse_report(0, b, sy, sx, 0, 0);
     }
 }
