@@ -1,8 +1,7 @@
 # excess
 
-Bench stuff that never got its own repo. none of it is finished, some of it
-doesnt build without a blob i cant commit, and nothing in here has anything to
-do with anything else in here beyond living on the same desk
+Bench stuff that never got its own repo. none of it is finished, some needs a
+blob i cant commit. it all lived on the same desk
 
 morphcpu is the one thats actually done, its elsewhere
 
@@ -13,17 +12,16 @@ wreck the wifi channel. no camera no pir. the radio is already measuring the
 room every packet, csi just hands you the per subcarrier estimate instead of
 throwing it away
 
-it connects as a station, spams udp at the gateway so theres traffic coming back
-at something like 70hz, and takes the l1 distance of each frames amplitudes off
-a slow baseline. rolling stdev of that distance is the score, two thresholds
-with a hold so it doesnt chatter. `motion.c` is 70 lines and easier to read than
-this paragraph
+it connects as a station and spams udp at the gateway for traffic at something
+like 70hz. it measures the l1 distance between each frame's amplitudes and a
+slow baseline, then takes rolling stdev of that distance. two thresholds and a
+hold keep it from chattering. `motion.c` is 70 lines
 
 first version scored it as correlation against the empty room vector instead.
 that worked, it also fired every time the AP shifted rate so i threw it out
 
-the thresholds in there are whatever worked with the board on my shelf, theyre
-not a constant of the universe. `tools/cap.py` dumps raw frames over uart, flip
+the thresholds worked with the board on my shelf, youll need to retune them
+somewhere else. `tools/cap.py` dumps raw frames over uart, flip
 `print_raw` in `csi_rx.c` first or you get nothing out of it, and `plot_csi.py`
 runs the same maths offline so you can move the window without reflashing.
 thats how id retune it somewhere else
@@ -45,8 +43,7 @@ paused. it started as wanting to know how much of a mouse you can remove before
 it stops being one
 
 rp2040, pmw3360 on spi0, five switches straight on gpio with no matrix, tinyusb
-boot mouse. `pmw3360.c` is the only interesting file and its interesting for
-boring reasons, the sensor needs its srom blob uploaded in one long cs low
+boot mouse. `pmw3360.c` uploads the sensor's srom blob in one long cs low
 before it reports anything and that blob is pixarts so its gitignored, pull
 `srom_0x04.h` out of any qmk tree. the timings in there are the datasheet ones,
 tSRAD 160us and tSWW 180us, and shaving them made writes go missing
